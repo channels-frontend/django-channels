@@ -1,0 +1,54 @@
+{
+  "name": "django-channels",
+  "version": "1.1.6",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/django/channels.git"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "parcel src/index.js",
+    "build": "parcel build src/index.js",
+    "docs": "rm -rf docs && esdoc -c esdoc.json",
+    "prepare": "npm run build",
+    "test": "jest"
+  },
+  "files": [
+    "dist/index.js",
+    "dist/index.js.map"
+  ],
+  "babel": {
+    "presets": [
+      "@babel/preset-env"
+    ],
+    "plugins": [
+      "@babel/plugin-proposal-class-properties"
+    ]
+  },
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "@babel/runtime": "^7.5.5",
+    "reconnecting-websocket": "^4.1.10"
+  },
+  "jest": {
+    "roots": [
+      "tests"
+    ]
+  },
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/plugin-transform-async-to-generator": "^7.5.0",
+    "@babel/plugin-transform-runtime": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "esdoc": "^1.1.0",
+    "esdoc-ecmascript-proposal-plugin": "^1.0.0",
+    "esdoc-importpath-plugin": "^1.0.2",
+    "esdoc-standard-plugin": "^1.0.0",
+    "jest": "^24.8.0",
+    "jest-websocket-mock": "^1.5.0",
+    "mock-socket": "^8.1.1",
+    "parcel-bundler": "^1.12.3"
+  }
+}

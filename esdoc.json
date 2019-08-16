@@ -1,0 +1,31 @@
+{
+    "source": "./src",
+    "destination": "./docs",
+    "plugins": [
+        {
+            "name": "esdoc-standard-plugin",
+            "option": {
+                "undocumentIdentifier": {"enable": false},
+                "brand": {
+                    "title": "django-channels"
+                }
+            }
+        },
+        {
+            "name": "esdoc-ecmascript-proposal-plugin",
+            "option": {
+                "classProperties": true,
+                "objectRestSpread": true
+            }
+        },
+        {
+            "name": "esdoc-importpath-plugin",
+            "option": {
+                "replaces": [
+                  {"from": "^src/", "to": "dist/"},
+                  {"from": ".js$", "to": ""}
+                ]
+            }
+        }
+    ]
+}
