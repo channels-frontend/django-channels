@@ -1,6 +1,6 @@
 {
   "name": "django-channels",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "",
   "repository": {
     "type": "git",
@@ -20,7 +20,11 @@
   ],
   "babel": {
     "presets": [
-      "@babel/preset-env"
+      ["@babel/preset-env", {
+        "targets": {
+          "node": true
+        }
+      }]
     ],
     "plugins": [
       "@babel/plugin-proposal-class-properties"
