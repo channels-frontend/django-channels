@@ -71,6 +71,7 @@ export class WebSocketBridge {
     this.streamCallbacks = {};
     this.default_cb = null;
     this.options = {...options};
+    this.handleMessage = this.handleMessage.bind(this);
   }
 
   /**
@@ -120,18 +121,20 @@ export class WebSocketBridge {
    */
   listen = function(cb) {
     this.default_cb = cb;
-    this.socket.addEventListener("message",(event) => {
-      const msg = JSON.parse(event.data);
-      let action;
-      let stream;
-
-      if (msg.stream === undefined) {
-        action = msg;
-        stream = null;
-        this.default_cb ? this.default_cb(action, stream) : null;
-      }
-    });
+    this.socket.addEventListener("message", this.handleMessage);
   };
+
+  handleMessage(event) {
+    const msg = JSON.parse(event.data);
+    let action;
+    let stream;
+
+    if (msg.stream === undefined) {
+      action = msg;
+      stream = null;
+      this.default_cb ? this.default_cb(action, stream) : null;
+    }
+  }
 
   /**
    * Adds a 'stream handler' callback. Messages coming from the specified stream
