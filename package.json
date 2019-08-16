@@ -4,7 +4,7 @@
   "description": "",
   "repository": {
     "type": "git",
-    "url": "https://github.com/django/channels.git"
+    "url": "https://github.com/channels-frontend/django-channels.git"
   },
   "main": "dist/index.js",
   "scripts": {
