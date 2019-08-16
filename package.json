@@ -9,7 +9,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "parcel src/index.js",
-    "build": "parcel build src/index.js",
+    "build": "parcel build src/index.js --target node",
     "docs": "rm -rf docs && esdoc -c esdoc.json",
     "prepare": "npm run build",
     "test": "jest"
