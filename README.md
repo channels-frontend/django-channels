@@ -2,6 +2,10 @@
 
 Channels WebSocket wrapper.
 
+Extracted from `channels` v2.1.3.
+
+Note: This software is not endorsed by the Channels project.
+
 To process messages:
 
 ```
