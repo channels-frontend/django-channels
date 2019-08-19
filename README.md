@@ -2,7 +2,7 @@
 
 Channels WebSocket wrapper.
 
-Extracted from `channels` v2.1.3.
+Originally extracted from `channels` v2.1.3.
 
 Note: This software is not endorsed by the Channels project.
 
@@ -13,8 +13,8 @@ import { WebSocketBridge } from 'django-channels'
 
 const webSocketBridge = new WebSocketBridge();
 webSocketBridge.connect('/ws/');
-webSocketBridge.listen(function(action, stream) {
-  console.log(action, stream);
+webSocketBridge.addEventListener("message", function(event) {
+  console.log(event.data);
 });
 ```
 
@@ -29,12 +29,12 @@ To demultiplex specific streams:
 ```
 const webSocketBridge = new WebSocketBridge();
 webSocketBridge.connect('/ws/');
-webSocketBridge.listen();
-webSocketBridge.demultiplex('mystream', function(action, stream) {
-  console.log(action, stream);
+webSocketBridge.stream('mystream').addEventListener("message", function(event) {
+  //`event.origin` will be the name of the stream
+  console.log(event.data, event.origin);
 });
-webSocketBridge.demultiplex('myotherstream', function(action, stream) {
-  console.info(action, stream);
+webSocketBridge.stream('myotherstream').addEventListener("message", function(event) {
+  console.info(event.data, event.origin);
 });
 ```
 

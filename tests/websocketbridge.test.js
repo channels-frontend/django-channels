@@ -47,7 +47,7 @@ describe('WebSocketBridge', () => {
     const myMock = jest.fn();
 
     webSocketBridge.connect(URL, undefined, websocketOptions);
-    webSocketBridge.listen(myMock);
+    webSocketBridge.addEventListener("message", myMock);
 
     await mockServer.connected;
 
@@ -55,8 +55,10 @@ describe('WebSocketBridge', () => {
     mockServer.send({"type": "test", "payload": "message 2"});
 
     expect(myMock.mock.calls.length).toBe(2);
-    expect(myMock.mock.calls[0][0]).toEqual({ type: 'test', payload: 'message 1' });
-    expect(myMock.mock.calls[0][1]).toBe(null);
+    const ev = myMock.mock.calls[0][0];
+
+    expect(ev.origin).toBe("");
+    expect(ev.data).toEqual({ type: 'test', payload: 'message 1' })
 
   });
 
@@ -67,7 +69,8 @@ describe('WebSocketBridge', () => {
     const mockServer = new WS(URL, { jsonProtocol: true });
 
     webSocketBridge.connect(URL, undefined, websocketOptions);
-    webSocketBridge.listen(myMock);
+    //webSocketBridge.listen(myMock);
+    webSocketBridge.addEventListener("message", myMock);
 
     await mockServer.connected;
 
@@ -86,9 +89,10 @@ describe('WebSocketBridge', () => {
     const myMock3 = jest.fn();
 
     webSocketBridge.connect(URL, undefined, websocketOptions);
-    webSocketBridge.listen(myMock);
-    webSocketBridge.demultiplex('stream1', myMock2);
-    webSocketBridge.demultiplex('stream2', myMock3);
+    webSocketBridge.addEventListener("message", myMock);
+
+    webSocketBridge.stream('stream1').addEventListener("message", myMock2);
+    webSocketBridge.stream('stream2').addEventListener("message", myMock3);
 
     await mockServer.connected;
 
@@ -104,8 +108,9 @@ describe('WebSocketBridge', () => {
     expect(myMock2.mock.calls.length).toBe(1);
     expect(myMock3.mock.calls.length).toBe(0);
 
-    expect(myMock2.mock.calls[0][0]).toEqual({"type": "test", "payload": "message 1"});
-    expect(myMock2.mock.calls[0][1]).toBe("stream1");
+    const event2 = myMock2.mock.calls[0][0];
+    expect(event2.data).toEqual({"type": "test", "payload": "message 1"});
+    expect(event2.origin).toBe("stream1");
 
     mockServer.send({"stream": "stream2", "payload": {"type": "test", "payload": "message 2"}});
 
@@ -113,8 +118,9 @@ describe('WebSocketBridge', () => {
     expect(myMock2.mock.calls.length).toBe(1);
     expect(myMock3.mock.calls.length).toBe(1);
 
-    expect(myMock3.mock.calls[0][0]).toEqual({"type": "test", "payload": "message 2"});
-    expect(myMock3.mock.calls[0][1]).toBe("stream2");
+    const event3 = myMock3.mock.calls[0][0];
+    expect(event3.data).toEqual({"type": "test", "payload": "message 2"});
+    expect(event3.origin).toBe("stream2");
   });
 
   test('Demultiplexes messages', async () => {
@@ -123,7 +129,6 @@ describe('WebSocketBridge', () => {
     const webSocketBridge = new WebSocketBridge();
 
     webSocketBridge.connect(URL, undefined, websocketOptions);
-    webSocketBridge.listen();
 
     await mockServer.connected;
 
@@ -144,16 +149,18 @@ describe('WebSocketBridge', () => {
     expect(myMock.mock.calls.length).toBe(1);
     expect(myMock2.mock.calls.length).toBe(0);
 
-    expect(myMock.mock.calls[0][0]).toEqual({"type": "test", "payload": "message 1"});
-    expect(myMock.mock.calls[0][1]).toBe("stream1");
+    const ev = myMock.mock.calls[0][0]
+    expect(ev.data).toEqual({"type": "test", "payload": "message 1"});
+    expect(ev.origin).toBe("stream1");
 
     mockServer.send({"stream": "stream2", "payload": {"type": "test", "payload": "message 2"}});
 
     expect(myMock.mock.calls.length).toBe(1);
     expect(myMock2.mock.calls.length).toBe(1);
 
-    expect(myMock2.mock.calls[0][0]).toEqual({"type": "test", "payload": "message 2"});
-    expect(myMock2.mock.calls[0][1]).toBe("stream2");
+    const ev2 = myMock2.mock.calls[0][0];
+    expect(ev2.data).toEqual({"type": "test", "payload": "message 2"});
+    expect(ev2.origin).toBe("stream2");
 
   });
 

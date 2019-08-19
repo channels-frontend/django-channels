@@ -9,7 +9,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "parcel src/index.js",
-    "build": "parcel build src/index.js --target node",
+    "build": "parcel build src/index.js",
     "docs": "rm -rf docs && esdoc -c esdoc.json",
     "prepare": "npm run build",
     "test": "jest"
@@ -20,11 +20,7 @@
   ],
   "babel": {
     "presets": [
-      ["@babel/preset-env", {
-        "targets": {
-          "node": true
-        }
-      }]
+      "@babel/preset-env"
     ],
     "plugins": [
       "@babel/plugin-proposal-class-properties"
@@ -33,6 +29,7 @@
   "license": "BSD-3-Clause",
   "dependencies": {
     "@babel/runtime": "^7.5.5",
+    "event-target-shim": "^5.0.1",
     "reconnecting-websocket": "^4.1.10"
   },
   "jest": {

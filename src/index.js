@@ -1,6 +1,7 @@
 "use strict";
 
 import 'regenerator-runtime/runtime';
+import { EventTarget, defineEventAttribute } from "event-target-shim";
 import ReconnectingWebSocket from 'reconnecting-websocket';
 
 /**
@@ -10,7 +11,7 @@ import ReconnectingWebSocket from 'reconnecting-websocket';
  * const stream = new Stream("streamName", websocket);
  * stream.send({prop1: 'value1', prop2: 'value2'})
  */
-export class Stream {
+export class Stream extends EventTarget {
   /**
    *
    * @param {String} name The stream name
@@ -20,6 +21,7 @@ export class Stream {
    * const stream = new Stream("streamName", websocket);
    */
   constructor(name, socket) {
+    super();
     this.name = name;
     this.socket = socket;
     this.cb = null;
@@ -30,10 +32,13 @@ export class Stream {
   handleMessage(event) {
     const msg = JSON.parse(event.data);
     if (msg.stream === this.name) {
-      const action = msg.payload;
-      const stream = msg.stream;
-
-      this.cb ? this.cb(action, stream) : null;
+      const e = new MessageEvent(
+        'message', {
+          data: msg.payload,
+          origin: this.name
+        }
+      );
+      this.dispatchEvent(e);
     }
   }
 
@@ -59,13 +64,14 @@ export class Stream {
  *
  * @example
  * const webSocketBridge = new WebSocketBridge();
- * webSocketBridge.connect();
- * webSocketBridge.listen(function(action, stream) {
- *   console.log(action, stream);
+ * webSocketBridge.connect("http://example.com/ws/");
+ * webSocketBridge.addEventListener("message", function(event) {
+ *   console.log(event.data);
  * });
  */
-export class WebSocketBridge {
+export class WebSocketBridge extends EventTarget {
   constructor(options) {
+    super();
     this.socket = null;
     this.streams = {};
     this.streamCallbacks = {};
@@ -83,7 +89,7 @@ export class WebSocketBridge {
    * @param      {Object} options Object of options for [`reconnecting-websocket`](https://github.com/joewalnes/reconnecting-websocket#options-1).
    * @example
    * const webSocketBridge = new WebSocketBridge();
-   * webSocketBridge.connect();
+   * webSocketBridge.connect("http://example.com/ws/");
    */
   connect(url, protocols, options) {
     let _url;
@@ -104,41 +110,27 @@ export class WebSocketBridge {
       }
     }
     this.socket = new ReconnectingWebSocket(_url, protocols, options);
-  }
-
-  /**
-   * Starts listening for messages on the websocket, demultiplexing if necessary.
-   *
-   * @param      {Function}  [cb]         Callback to be execute when a message
-   * arrives. The callback will receive `action` and `stream` parameters
-   *
-   * @example
-   * const webSocketBridge = new WebSocketBridge();
-   * webSocketBridge.connect();
-   * webSocketBridge.listen(function(action, stream) {
-   *   console.log(action, stream);
-   * });
-   */
-  listen = function(cb) {
-    this.default_cb = cb;
     this.socket.addEventListener("message", this.handleMessage);
-  };
+  }
 
   handleMessage(event) {
     const msg = JSON.parse(event.data);
-    let action;
-    let stream;
 
     if (msg.stream === undefined) {
-      action = msg;
-      stream = null;
-      this.default_cb ? this.default_cb(action, stream) : null;
+      const e = new MessageEvent(
+        'message', {
+          data: msg,
+          origin: ''
+        }
+      );
+      this.dispatchEvent(e);
     }
   }
 
   /**
    * Adds a 'stream handler' callback. Messages coming from the specified stream
    * will call the specified callback.
+   * Essentianlly, this is a shortcut for `stream(streamName).addEventListener("message", callback)`;
    *
    * @param      {String}    stream  The stream name
    * @param      {Function}  cb      Callback to be execute when a message
@@ -146,8 +138,7 @@ export class WebSocketBridge {
 
    * @example
    * const webSocketBridge = new WebSocketBridge();
-   * webSocketBridge.connect();
-   * webSocketBridge.listen();
+   * webSocketBridge.connect("http://example.com/ws/");
    * webSocketBridge.demultiplex('mystream', function(action, stream) {
    *   console.log(action, stream);
    * });
@@ -156,7 +147,7 @@ export class WebSocketBridge {
    * });
    */
   demultiplex(stream, cb) {
-    this.stream(stream).cb = cb;
+    this.stream(stream).addEventListener("message", cb);
   }
 
   /**
