@@ -4,6 +4,18 @@ import 'regenerator-runtime/runtime';
 import { EventTarget, defineEventAttribute } from "event-target-shim";
 import ReconnectingWebSocket from 'reconnecting-websocket';
 
+
+class Forwarder extends EventTarget {
+  constructor() {
+    super();
+    this.forwardEvent = this.forwardEvent.bind(this);
+  }
+
+  forwardEvent(event) {
+    //console.log(`forwarding ${event.type}`);
+    this.dispatchEvent(event);
+  }
+}
 /**
  * Handle messages to and from a specific stream.
  *
@@ -11,7 +23,7 @@ import ReconnectingWebSocket from 'reconnecting-websocket';
  * const stream = new Stream("streamName", websocket);
  * stream.send({prop1: 'value1', prop2: 'value2'})
  */
-export class Stream extends EventTarget {
+export class Stream extends Forwarder {
   /**
    *
    * @param {String} name The stream name
@@ -24,9 +36,11 @@ export class Stream extends EventTarget {
     super();
     this.name = name;
     this.socket = socket;
-    this.cb = null;
     this.handleMessage = this.handleMessage.bind(this);
     this.socket.addEventListener("message", this.handleMessage);
+    this.socket.addEventListener("open", this.forwardEvent);
+    this.socket.addEventListener("close", this.forwardEvent);
+    this.socket.addEventListener("error", this.forwardEvent);
   }
 
   handleMessage(event) {
@@ -58,6 +72,10 @@ export class Stream extends EventTarget {
       this.socket.send(JSON.stringify(msg));
   }
 }
+defineEventAttribute(Stream.prototype, "open");
+defineEventAttribute(Stream.prototype, "close");
+defineEventAttribute(Stream.prototype, "error");
+defineEventAttribute(Stream.prototype, "message");
 
 /**
  * Bridge between Channels and plain javascript.
@@ -69,16 +87,14 @@ export class Stream extends EventTarget {
  *   console.log(event.data);
  * });
  */
-export class WebSocketBridge extends EventTarget {
+export class WebSocketBridge extends Forwarder {
   constructor(options) {
     super();
     this.socket = null;
     this.streams = {};
-    this.streamCallbacks = {};
-    this.default_cb = null;
     this.options = {...options};
     this.handleMessage = this.handleMessage.bind(this);
-  }
+}
 
   /**
    * Connect to the websocket server
@@ -110,7 +126,11 @@ export class WebSocketBridge extends EventTarget {
       }
     }
     this.socket = new ReconnectingWebSocket(_url, protocols, options);
+    this.socket.addEventListener("open", this.forwardEvent);
+    this.socket.addEventListener("close", this.forwardEvent);
+    this.socket.addEventListener("error", this.forwardEvent);
     this.socket.addEventListener("message", this.handleMessage);
+
   }
 
   handleMessage(event) {
@@ -181,3 +201,7 @@ export class WebSocketBridge extends EventTarget {
     return stream;
   }
 }
+defineEventAttribute(WebSocketBridge.prototype, "open");
+defineEventAttribute(WebSocketBridge.prototype, "close");
+defineEventAttribute(WebSocketBridge.prototype, "error");
+defineEventAttribute(WebSocketBridge.prototype, "message");

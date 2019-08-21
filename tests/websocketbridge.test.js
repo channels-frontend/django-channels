@@ -4,7 +4,7 @@ import { WebSocketBridge } from '../src/';
 describe('WebSocketBridge', () => {
   const URL = "ws://localhost";
 
-  const websocketOptions = { maxReconnectionDelay: 500, minReconnectionDelay: 50, reconnectionDelayGrowFactor: 1 };
+  const websocketOptions = { maxReconnectionDelay: 250, minReconnectionDelay: 50, reconnectionDelayGrowFactor: 1 };
 
   afterEach(() => {
     WS.clean();
@@ -37,6 +37,25 @@ describe('WebSocketBridge', () => {
     mockServer.send({"type": "test", "payload": "message 1"});
 
     expect(myMock.mock.calls.length).toBe(1);
+
+  });
+
+  test('Can listen to events', async () => {
+    let mockServer = new WS(URL, { jsonProtocol: true });
+    const closeMock = jest.fn();
+    const errorMock = jest.fn();
+
+    const webSocketBridge = new WebSocketBridge();
+
+    webSocketBridge.addEventListener("close", closeMock);
+    webSocketBridge.addEventListener("error", errorMock);
+    webSocketBridge.connect(URL, undefined, websocketOptions);
+
+    await mockServer.connected;
+
+    mockServer.error();
+    expect(errorMock.mock.calls.length).toBe(1);
+    expect(closeMock.mock.calls.length).toBe(1);
 
   });
 
