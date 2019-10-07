@@ -112,9 +112,6 @@ export class WebSocketBridge extends Forwarder {
     // Use wss:// if running on https://
     const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
     let base_url = `${scheme}://${window.location.host}`;
-    if (window.location.port) {
-      base_url += `:${window.location.port}`;
-    }
     if (url === undefined) {
       _url = base_url;
     } else {
